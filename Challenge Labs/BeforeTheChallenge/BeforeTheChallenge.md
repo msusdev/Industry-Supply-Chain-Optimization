@@ -1,7 +1,7 @@
 ![Microsoft Industry-Based Challenges](https://www.microsoft.com/en-us/)
 
 <div class="MCWHeader1">
-Microsoft Industry Based Challenges - Omnipresent 
+Microsoft Industry Based Challenges - Supply Chain Optimization 
 </div>
 
 <div class="MCWHeader2">
@@ -26,18 +26,21 @@ Microsoft and the trademarks listed at <https://www.microsoft.com/en-us/legal/in
 
 <!-- TOC -->
 
-- [Omni-channel Optimization before the challenge setup guide](#omni-channel-optimization-before-the-challenge-setup-guide)
+- [Supply Chain Optimization before the challenge setup guide](#supply-chain-optimization-before-the-challenge-setup-guide)
   - [Requirements](#requirements)
   - [Before the challenge](#before-the-challenge)
     - [Prerequisites](#prerequisites)
     - [Task 1: Use Azure Shell](#task-1-use-azure-shell)
     - [Task 2: Get the Deployment Template](#task-2-get-the-deployment-template)
     - [Task 3: Deploy the Environments](#task-3-deploy-the-environments)
-    - [Task 4: Validate Environments and Data](#task-4-validate-environments-and-data)
+    - [Task 4: Validate Environments and data](#task-4-validate-environments-and-data)
+    - [Task 5: Signup for the Dynamics 365 Connected Store preview](#task-5-signup-for-the-dynamics-365-connected-store-preview)
+    - [Task 6: Install and setup the app](#task-6-install-and-setup-the-app)
+    - [Task 7: Setup trial of Salesforce](#task-7-setup-trial-of-salesforce)
 
 <!-- /TOC -->
 
-# Omni-channel Optimization before the challenge setup guide
+# Supply Chain Optimization before the challenge setup guide
 
 ## Requirements
 
@@ -47,7 +50,7 @@ Microsoft and the trademarks listed at <https://www.microsoft.com/en-us/legal/in
 
 Duration: 10 minutes
 
-In this guide, you will provision the mock environment and data for the Microsoft Industry Based Challenge "Omni Channel Optimization"
+In this guide, you will provision the mock environment and data for the Microsoft Industry Based Challenge "Supply Chain Optimization"
 
 ### Prerequisites
 
@@ -67,16 +70,16 @@ In this guide, you will provision the mock environment and data for the Microsof
 1.  Create a new folder:
 
     ```bash  
-    mkdir msibcomnichannel
-    cd msibcomnichannel
+    mkdir msibsupplychain
+    cd msibsupplychain
     ```  
 
-    ![This is a screenshot of the bash terminal with commands to make the directory and move to it for the msibcomnichannel directory](media/image2001.png "The directory msibcomnichannel is created and the terminal is ready to accept a new command")
+    ![This is a screenshot of the bash terminal with commands to make the directory and move to it for the msibcomnichannel directory](media/supplychainfolder.png "The directory msibcomnichannel is created and the terminal is ready to accept a new command")
 
 1.  Using the Azure Cloud Shell, you can download the file by executing the following command inside the Cloud Shell window (all on one line):
 
     ```bash
-    curl -o azuredeploy.json https://raw.githubusercontent.com/opsgility/PartsUnlimitedNet472/master/azuredeploy.json
+    curl -o azuredeploy.json curl -o azuredeploy.json https://raw.githubusercontent.com/opsgilitybrian/PartsUnlimited5/main/azuredeploy.json
     ```  
 
     Then run 
@@ -89,12 +92,10 @@ In this guide, you will provision the mock environment and data for the Microsof
 
     ![This is a screenshot that shows the progress to the point of having the azuredeploy.json file in the local folder at Azure](media/image2002.png "The ls command is executed to show that azuredeploy.json is in the local directory")
 
-3.  When completed, you will have a new ARM template to deploy the app service plan, the app service, a SQL server and a database to four environments to simulate the following:  
+3.  When completed, you will have a new ARM template to deploy the app service plan, the app service, a SQL server and a database to simulate the following:  
 
     *   Web [The company's public-facing website]
-    *   Mobile [The version of the web that mobile users see]
-    *   Store1 [Simulating a physical store location]
-    *   Store2 [Simulating another physical store location]
+
    
 4.  If you wish, you can review the ARM template.  
 
@@ -114,7 +115,7 @@ In this guide, you will provision the mock environment and data for the Microsof
 2. Navigate the prompt to the msibcomnichannel folder if you are not already there.
 
     ```bash  
-    cd msibcomnichannel
+    cd msibsupplychain
     ```  
    
 3. Using the Azure CLI, create a new resource group  
@@ -122,7 +123,7 @@ In this guide, you will provision the mock environment and data for the Microsof
     Name the resource group appropriately (such as msibc_omnichannel).  Set the location to the region nearest to you. 
 
     ```bash  
-    rgName=msibc_omnichannel
+    rgName=msibsupplychain
     location=centralus
     echo $rgName
     echo $location
@@ -160,9 +161,7 @@ In this guide, you will provision the mock environment and data for the Microsof
 
     ![This is a screenshot of the bash terminal with the command to create a group deployment in progress](media/image2005.png "Bash command executed to create the deployment group")
 
-5.  Repeat for the three remaining environments.  
 
-    Repeat to deploy all four environments.  
 
     Once completed, the following resources should appear within your Resource Group within the Azure Portal.
     
@@ -172,64 +171,119 @@ In this guide, you will provision the mock environment and data for the Microsof
 
 1. Validate deployments
 
-    Make sure that you can load all four webpages.  You should be able to find the urls for your four app services in the azure portal.
-
-    ![The page is up and running as expected](media/image2007.png "The page loads on refresh after initial failure")]
-
-2. Skew prices and counts on Mobile site
-
-    When you are on the `Mobile` site, make an additional navigation to the url:  
-
-    ```  
-    https://<your-site>.azurewebsites.net/ChallengeSeeds/SeedMobile
-    ```  
     
-    For example, your link should look similar to this:  `https://msibc-partsunlimited-mobile-iruresw57wgr4.azurewebsites.net/ChallengeSeeds/SeedMobile`
-
-    You will not see anything new, but the prices and inventory counts will be skewed for this instance when compared to the original site.
-
-    ![A screenshot shows that prices are different on the web and mobile sites](media/image2008.png "Side by Side comparisons of the prices show that the data is skewed on the mobile site")
-
-3. Skew prices and counts and Add a Category with products on Store1
-
-    When you are on the `Store1` site, make an additional navigation to the url:  
-
-    ```  
-    https://<your-site>.azurewebsites.net/ChallengeSeeds/SeedStore1
-    ```  
-
-    You will see a new category `Accessories` with some products.  Additionally the prices and inventory counts will be skewed for this instance when compared to the original site.  
-
-    ![A screenshot shows that the Store1 site has a new Accessories category with products](media/image2009.png "The Accessories category has products")
-
-4. Skew prices and counts and Add a Category with products for Store2
-
-    When you are on the `Store2` site, make an additional navigation to the url:  
-
-    ```  
-    https://<your-site>.azurewebsites.net/ChallengeSeeds/SeedStore2
-    ```  
-
-    You will see a new category `Fancy Rims` with some products.  Additionally the prices and inventory counts will be skewed for this instance when compared to the original site.  
-
-    ![A screenshot shows that the Store2 site has a new Fancy Rims category with products](media/image2010.png "The Fancy Rims category has products")
-
-5. Confirm/Ensure Environment Details
-
-    With the four environments, a couple of quick notes.  
-
-    * The Web version is considered the source of truth, every other version diverges from this default implementation.  
-
-    * The mobile version will not have product or category discrepancies, but will have price and inventory inaccuracies.  These are randomly generated, so the values may be quite a bit different than the web version.  
-
-    * The Store1 version will have an extra category for `Accessories` that will have some additional products.  Store1 will also contain price and inventory inaccuracies/disparities.  
-
-    * The Store2 version will have an extra category for `Fancy Rims` that will contain additional products.  Store2 will also contain price and inventory inaccuracies/disparities.  
-
-    >**Note:** If you run the skew prices (Seed) routine more than once for an environment you will continually increase the prices of products to ultimately reach a maximum of $500.00 on all products.  You should not do this - you should only run each seed method one time.  Products and Categories will not be duplicated no matter how many times you run the seeds.
-
-2. Final Thoughts
-
-    With the four environments deployed, you have set up the simulation so that you can work with the data from the web, mobile, and two stores that all have their own backing database to combine the data and provide the solutions as needed by the company for the omni-channel solution.
 
 You should follow all steps provided *before* starting the Omni-channel optimization industry-based challenge.
+
+### Task 5: Signup for the Dynamics 365 Connected Store preview
+
+1. Visit https://dynamics.microsoft.com/en-us/ai/connected-store/ to request a preview of the Dynamics 365 Connected store
+
+    ```text
+        https://dynamics.microsoft.com/en-us/ai/connected-store/
+    ```
+2. Click on the **Request a preview** button
+
+    ![](media/requestpreview.png)
+    
+3. Enter your email to setup the account and click **Next**
+
+    ![](media/setupacct.png)
+    
+4. Click the **Set up account** button
+
+    ![](media/setupacct2.png)
+    
+5. Enter in some basic business information and click **Next**
+
+    ![](media/tellus.png)
+    
+6. Enter a phone number to get a verification code. Then click **Send verification code**
+
+    ![](media/sendcode.png)
+    
+7. Enter the code and click the **Verify** button
+
+    ![](media/verify.png)
+
+8. Enter a unique subdomain and click the **Check Availability** button until you get one that is validated
+
+    ![](media/checkavail.png)
+    
+9. Once you have a valid subdomain click **Next**
+
+    ![](media/subdomain.png)
+    
+10. Create a userid and password to login to the store then click **Next**
+
+    ![](media/userid.png)
+    
+### Task 6: Install and setup the app   
+
+1. Visit https://go.microsoft.com/fwlink/?linkid=2143957 to install the Connected Store
+    ```text
+    https://go.microsoft.com/fwlink/?linkid=2143957
+    ```
+
+2. Choose then Environmnet selected and click **Install**
+
+    ![](media/connectedinstall.png)
+    
+3. Click **Next** if prompted
+
+    ![](media/connectedinstalling.png)
+    
+4. Skip the business data required for the form and click **Next**
+
+    ![](media/gatewayorder.png)
+    
+5. Watch the video and then click **Launch App**
+
+6. Click on the **Go to sample store** button
+
+    ![](media/samplestore.png)
+    
+7. Make sure you choose **Contoso Sample Store** from the dropdown
+
+    ![](media/contososample.png)
+    
+8. Sample store Analytics
+
+    ![](media/samplestoreui.png)
+    
+    
+### Task 7: Setup trial of Salesforce
+
+1. Visit https://www.salesforce.com/form/signup/freetrial-elf-v2/?d=70130000000EqoP to create a free trial
+
+    ```text
+    https://www.salesforce.com/form/signup/freetrial-elf-v2/?d=70130000000EqoP
+    ```
+    
+2. Enter the basic information and click **NEXT**
+
+    ![](media/salesforcestep1.png)
+
+3. Fill in step 2 of the process and click **NEXT**
+
+    ![](media/sfstep2.png)
+    
+4. Enter the final questions and click **SUBMIT**
+
+    ![](media/sfstep3.png)
+    
+5. Login to Salesforce using https://login.salesforce.com/
+
+    ```text
+    https://login.salesforce.com/
+    ```
+
+6. Login
+
+    ![](media/loginsf.png)
+    
+7. Verify your login 
+
+    ![](media/verifysf.png)
+    
+You should follow all steps provided *before* starting the Supply chain optimization industry-based challenge.
