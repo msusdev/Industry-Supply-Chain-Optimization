@@ -137,13 +137,36 @@ _High-level architecture_
 
 _Data ingest_
 
-1. What are your recommended options for ingesting payment transaction events and customer browsing and shopping data as they occur in a scalable way that can be easily processed?
+1. What are your recommended options for ingesting payment transaction events and customer shopping data as they occur in a scalable way that can be easily processed while maintaining event order with no data loss?
 
 2. Of the ingest options you identified previously, which would you recommend for Parts Unlimited's scenario?
 
+### Success criteria
+
+-	Determine and build the architecture for collecting data into Azure:
+
+    o	On-premises data: customer information, inventory, sales/POS
+
+    o	Online data: customer information, inventory, sales/POS
+
+    o	Workforce optimization data: number of staff each shift, customers per hour
+
+    o	Cost efficiency data: what products are being viewed and purchased most, and by what demographic (location, visitor persona, etc.)
+
+    o	Online traffic and sources to the website (social media, search engines, direct email marketing, mobile app, etc.)
+
+-	Determine and build the architecture for where to ingest data into Azure
+
 _Data ingest solution_
 
-To get all the data, you will need to be able to ingest data from the various sources that exist as well as potentially respond to devices and other channels, so you'll have Azure Data Factory, an IoT Hub, and potentially an EventHub.  You will then likely use other tools to transform the data and filter the results for presentation.
+The current solution does get data into a number of databases, but the data is incomplete and not able to be easily used.  The first part of the process will be to get the data ingested - to bring it into a state where it is ready to be used by the rest of the process.  By ingesting the data using Azure Data Factory, you can get the data and transform it if necessary.  In the end, you'll have a complete picture of your data ready to go for the next parts of the process.
+
+In order to begin to work with the data from the various web app databases, you will be required to create a baseline environment with Azure Data Factory for data movement and processing. You will create a Data Factory service, and then install the Data Management Gateway which is the agent that facilitates data movement from multiple databases to Microsoft Azure.
+
+   >**Note**: Complete the Before HOL setup prior to proceeding to the challenge tasks below. Provide this link to participants to access the setup instructions.
+   ```bash  
+    https://TODO
+   ``` 
 
 ## Create an Azure Data Lake Storage account and Azure Synapse Analytics service
 
@@ -260,15 +283,16 @@ Before you can connect datasources, you will need to create an Azure Data Lake s
 
       ![Screenshot of the data factory overview page.](media/datafactauthor.png 'Select author and monitor on the data factory overview blade')
 
+
+
+
 ## Exercise 2: Build the architecture for loading and transforming data
 
 _Data transformation_
 
-1. Will data transformation be needed?
+1. What solutions offer options for ETL and/or ELT?  
 
-2. If so, Which option would you recommend and why?  
-
-3. Will there need to be a hot and a cold path on this data? 
+2. Which option would you recommend and why?
 
 _Data processing_
 
@@ -276,9 +300,26 @@ _Data processing_
 
 2. How will you ensure that data processes are repeatable?
 
-_Data processing solution_
+### Success criteria
 
-Data ingested will be moved from Azure Data Factory to Azure Data Lake storage, where it will be fed into Azure Synapse Analytics Spark tools to analyze and transform the data for presentation.  Information from IoT devices and event hub will be moved by Azure Stream Analytics into CosmosDB for analysis in Azure Synapse Analytics services.
+-	Determine and build the architecture for loading the data
+
+    o	Understand what data is being collected and what form
+
+    o	Is the data collected in a hot or cold path, and how would each be loaded into Azure
+    - Does any of this data need to be accessible in near real-time?
+
+    o	Design the speed layer (hot path) architecture for real-time data use
+    
+    o	Design the batch layer (cold path) architecture for monthly data use
+
+_Data pipeline processing solution_
+
+As part of the ingestion and transformation process, you may find reason to process the data and transform it as you ingest it.  By doing the transformation of the original data, you can position the data store to have information ready to go.
+
+While you may do some original transformation of the data, it is also likely that in order to present the final solution you will need to further transform the data that has been previously ingested.  
+
+Databricks allows you to use SQL queries against your Datalake to get your data ready to present.
 
 ## Develop a data factory pipeline for data movement
 
@@ -290,44 +331,41 @@ Data ingested will be moved from Azure Data Factory to Azure Data Lake storage, 
 
       ![Screenshot of the data factory portal where you can start your copy data pipeline.](media/datafactcopydata.png 'Select copy data from the get started page')
 
-3.  In the Properties page, specify **CopyFromSQLToSynapse** for the Task name field, and select Next. 
+3.  In the Properties page, specify **CopyFromSalesforceToSynapse** for the Task name field, and select Next. 
 4.  In the task description, enter **Moving data from store website SQL databases to Azure Synapse Analytics for analysis**
 5.  Select **Next**
 
-      ![Screenshot of the properties for the copy data tool.](media/copydataname2.png 'Provide a task name and description')
+      ![Screenshot of the properties for the copy data tool.](media/copysalesforce.png 'Provide a task name and description')
 
 6.  In Source data store, select **+ Create new connection**
 
       ![Create a new connection for data source.](media/newconnection.png 'Select create a new connection')
 
-7.  When the New linked service blade opens, select the **Azure** tab and select **Azure SQL Database**
+7.  When the New linked service blade opens, search for **sales** and select **Salesforce**
 
-      ![Create a new linked service to Azure SQL Database.](media/linkedsql.png 'Select Azure SQL Database as the new linked service')
+      ![Create a new linked service to Azure SQL Database.](media/newsfconnection.png 'Select Azure SQL Database as the new linked service')
 
-8.  Select one of the SQL databases that was created in the initial Before the Challenge setup.  Use SQL authentication with the login credentials created in the Before the Challenge setup.  Your **New linked service** configuration should look similar to the screenshot below.
+8.  Enter the credentials to connect to Salesforce. Your **New linked service** configuration should look similar to the screenshot below.
 
-      ![Connect SQL database to the new linked service.](media/connectdatabase1.png 'Configure the linked service to connect to one of the SQL databases')
+      ![Connect SQL database to the new linked service.](media/sfservice.png 'Configure the linked service to connect to one of the SQL databases')
 
 9.  Select **Create**
+
+10. Following the same steps create another connection for **Common Data Service for Apps** and click **Continue**
+
+    ![](media/cds.png)
     
-10. Repeat steps 24-26 until all store databases are connected
+11. Copy in the **Service Uri** and selection authentication as **Office365** and enter the correct credentials and finally click the **Create** button.
 
-      ![All SQL databases have been connected to the linked service.](media/allsqldbconnected.png 'All SQL databases are now connected in the source connection')
-
-
-11. After all databases are connected, select **Next**
+    ![](media/cdsauth.png)
+    
+11. Select **Next**
 
 
 12. Under **Dataset** select the following tables
-    - dbo.CartItems
-    - dbo.Categories
-    - dbo.OrderDetails
-    - dbo.Orders
-    - dbo.Products
-    - dbo.Rainchecks
-    - dbo.Stores
+    - Observational Data
 
-      ![Select the tables that will make up the source dataset.](media/selectdataset.png 'Select the tables from the databases that will be used as the datasets')
+      ![Select the tables that will make up the source dataset.](media/observedata.png 'Select the tables from the databases that will be used as the datasets')
 
 13. Select **Next**.  
     
@@ -341,7 +379,7 @@ Data ingested will be moved from Azure Data Factory to Azure Data Lake storage, 
       
 
 2. Select **Azure Synapse Analytics** and select **Continue**
-
+    
       ![](media/selectazuresynapse.png 'screenshot')
       
 
@@ -403,18 +441,37 @@ Data ingested will be moved from Azure Data Factory to Azure Data Lake storage, 
 19. Choose the **Monitor** icon to view the current status and runs of the pipeline
 
       ![](media/monitorpipeline.png 'screenshot')
+      
+
+
 
 ## Exercise 3: Build the architecture for presenting the data
 
 _Dashboards and reporting_
 
-1. Parts Unlimited's business analysts would like to have a set of dashboards they can monitor that provide real-time views of supply chain data. What do you propose using to meet this requirement? Be specific about how this solution will be put in place and which features it supports, and why it will be useful to the business analysts.
+1. Parts Unlimited's business analysts would like to have a set of dashboards they can monitor that provide real-time views of customer data. What do you propose using to meet this requirement? Be specific about how this solution will be put in place and which features it supports, and why it will be useful to the business analysts.
 
-2. Parts Unlimited's marketing team would like to be able to get insights from the data, and be able to identify trends, as well as see how effective various pricing strategies are.   How will you provide this data to them to enable them to ensure an optimal customer experience?
+2. Parts Unlimited's data analysts, who build and maintain reports, are comfortable working with T-SQL. How can they efficiently access the data for analytical queries, ensuring they have access to the most up-to-date data, without impacting the transactional data store?
+
+### Success criteria
+
+-	Determine and build the architecture for presenting the data
+
+    o	Provide a dashboard for business users to be able to review data and make informed decisions
+
+    o	Dashboard should include:
+    
+    - Sales data for stores and online with a comparison
+    - Navigation habits for online customers
+    - Purchase and view habits of in person customers
+    - Digital marketing and social media effectiveness based on campaigns, traffic to the website, and online sales.
+    - Recommendations on products that gain the most traffic by location and demographic
+
+    o	Data should be updated within the dashboard in near real-time based on the frequency of data that is collected.
 
 _Dashboards and reporting solution_  
 
-The dashboards for this solution should allow the marketing team to make sure that personalized recommendations are driving results.
+It doesn't matter how good your data ingestion and transformation is if you never present the results to the appropriate audience.  Using dashboards and other reports, you can use the ingested, transformed, and extracted data to present valuable information to the business decision makers.
 
 ## Link Power BI workspace to Azure Synapse Analytics workspace
 
@@ -479,7 +536,7 @@ connectpowerbi
 
    ![](media/publishworkspace.png 'Screenshot')   
 
-### Task 3: Create a Power BI account
+### Task 3: Download Power BI
 
 1. Download Power BI Desktop from <https://powerbi.microsoft.com/en-us/desktop/>.
 
@@ -496,415 +553,68 @@ connectpowerbi
 1. Click on the Get data link
 
       ![](media/getdata.png)
-
-2. Click on Azure then select Azure Synapse Analytics (SQL DW) then click Connect
-
-      ![](media/sqldw.png)
-
-3. Select your Synapse workspace and in the Overview section copy the link the Dedicated SQL endpoint
-
-      ![](media/DWendpoint.png)
-
-4. Paste the server name in. Validate that Import is chosen and click OK
-
-      ![](media/importdata.png)
-
-5. To connect select Database on the left tabs. Paste the User name and passwords used in the initial setup. Then click Save
-      ![](media/setdbconnection.png)
-
-6. Expand the Navigator and check all the available tables. Then click Load
-
-      ![](media/loaddatafrom%20DW.png)
-
-      >**Note**: The next sections will show how to create various reports within your PowerBI Dashboard.  To provide meaningful data, files have been provided within the PowerBIfiles folder.
       
-### Sales data by Physical vs web store
+2. Search for **Sales** and select **Salesforce Objects** then click **Connect**.
 
-1. Click on the Name column under the Stores table to add a table
+    ![](media/sfobjects.png)
+    
+3. Leave the defaults and click **OK**
 
-      ![](media/powerbi-storesstep1.png)
+    ![](media/sfdefaults.png)
+    
+4. After authenticating, search for **lead** and select **Lead** and click the **Load** button
 
-2. While having that same table select click the Count column under the Rainchecks table
+    ![](media/leadbtn.png)
+    
+5. Click on the **Get data** button
 
-      ![](media/raincheckcount.png)
+    ![](media/getdatabtn.png)
+    
+6. Search for **Dataverse** and select **Dataverse** and finally click **Connect**
 
-3. While still having the table selected choose the Stacked Column chart
+    ![](media/cntdataverse.png)
+    
+7. Copy and paste the domain to the **Connected Store** and paste in the **Environment domain**. Finally, click **OK**
 
-      ![](media/stackedcolumnchart.png)
+    ![](media/envdomain.png)
+    
+8. Start searching for **observe** and select **msdyn_observationaldata** and then click **Load**
+      
+      ![](media/observelink.png)
+      
+9. Add a stacked column chart
 
-4. While still having the table selected right-click on the Name column under stores and select New group.
+    ![](media/stacked1.png)
+    
+10. To get the amount of time individuals spend in different sections of the store setup the following. For the Axis choose **msdyn_zonename** and for Values choose **msdyn_measurementvalue**
 
-      ![](media/newgroup1.png)
+    ![](media/chart1a.png)
+    
+11. To find our the busiest days of the weekd setup up the following in another stacked column chart. For the Axis choose **msdyn_dayofweekname** and for the values choose **msdyn_measurementvalue**
 
-5. Select the following(18,16,4,17,13,20,19,2,5,11,3). Click on the Group button and rename to Online 
+    ![](media/chart2.png)
 
-      ![](media/grouplinline.png)
+12. In the fields section right click on **msdyn_zonename** and select **New group**
 
-6. Then choose the new Name group created for the table.
+    ![](media/newgroups1.png)
+    
+13. Select all the **Display** zones and click Group. Then name it to Display
 
-7. Then right-click on the new group and select New group
+    ![](media/displaygroup.gif)
+    
+14. Repeat the previous step for Queue and Entrance (Note: Put Contoso Sample Store in Entrance)
 
-      ![](media/newgroup2.png)
+15. To see how long individuals spend in zone groups add a stacked bar chart. Then for the Axis select the newly created group and for Values select **msdyn_measurementtypename** 
 
-8. Select the remaining stores and click the Group button (Exclude the Online group)
+    ![](media/chart3.png)
 
-      ![](media/groupstep1.png)
+16. Lets find out the Leads by sources. Add a Donut chart and set the Legend to **Leadsource** and the Values to **Company**
 
-9. Double click the title to rename to Physical Store and click OK
+    ![](media/leadsource.png)
 
-      ![](media/physicalstore.png)
+17. Final results in PowerBI
 
-10. Finally choose the new grouped column for the Axis
-
-      ![](media/newgroupedforaxis.png)
-
-11. Right-click the Axis column and choose Rename for this visual. Rename to **Physical Store vs Online Stores**
-
-      ![](media/rename1.png)
-
-12. Right-click the Count column and choose Rename. Rename to **Sales Data**
-
-      ![](media/rename2.png)
-
-13. End result
-
-      ![](media/physicalvsonline.png)
-
-
-### Weblog data
-
-1. Select get data from Text/CSV in PowerBI
-
-      ![](media/weblogdata.png)
-
-2. Select weblog.csv
-
-      ![](media/selectweblog.png)
-
-3. Click on transform data
-
-      ![](media/transformdata.png)
-
-4. Right-click on the URL column and choose Split Column -> By Delimiter
-
-      ![](media/delimit.png)
-
-5. Leave the defaults and click OK
-
-      ![](media/defaultdelim.png)
-
-6. Right-click on the URL.2 column and choose rename to enter **NavigationHabits**
-
-      ![](media/url2rename.png)
-
-7. Click on the row sorting arrow and un-select any non aspx urls (eg. js, css, ico, png) then click OK
-
-      ![](media/filternavhabits.png)
-
-8. Click Close & Apply
-
-      ![](media/closenapply.png)
-
-9. Expand the weblog data section and click the **NavigationHabits** column
-
-      ![](media/navhabits.png)
-
-10. This will add a table to the display
-
-      ![](media/basictable.png)
-
-11. Click on the Treemap Visualization to convert the table to a treemap
-
-      ![](media/treemap.png)
-
-12. Drag the NavigationHabits column to the Values field of the treemap
-
-      ![](media/countnavhabits.png)
-
-13. Rename Group to Online Customers and Valudes to Navigation Habits
-
-      ![](media/powerbi-rename.png)
-
-14. Final result
-
-      ![](media/powerbi-navhabits.png)
-
-### Purchase and view habits
-
-Based off the amount of time that people view an item we will reference that price and display the total amount spent as the size of the ball in the Scater plot.
-
-1. Select get data from Text/CSV in PowerBI
-
-      ![](media/weblogdata.png)
-
-2. Choose online shoppers and click Open.Then click the Load button
-
-      ![](media/chooseonlineshoppers.png)
-
-3. In PowerBI select the Modeling tab then click on Manage Relationships
-
-      ![](media/managerelationships1.png)
-
-4. Click on the New button
-
-      ![](media/newbutton.png)
-
-5. In the first dropdown select the Products Table and highlight the ProductId column
-
-      ![](media/productid.png)
-
-6. In the second dropdown select online_shoppers_intention and then highlight the ProductRelated column. 
-
-      ![](media/onlineshoppermap.png)
-
-7. Change the Cardinality dropdown to Many to many. Leave the remaining as defaults and click the OK button  
-
-      ![](media/manytomany.png)
-
-8. Then click the Close button
-
-      ![](media/closebutton.png)
-
-9. Add a Scatter plot Visualization 
-
-      ![](media/scatter1.png)
-
-10. Set the Details field to the Title column under Products
-
-      ![](media/detail-nameproduct.png)
-
-
-11. Set the X axis to ProductRelated_Duration from the online_shoppers_intention table
-
-      ![](media/productrelatedduraction.png)
-
-12. Set the Y axis to Price from the Products table
-
-      ![](media/yaxis-price.png)
-
-13. Finally choose the SalePrice from the Rainchecks table to Size
-
-      ![](media/saleprice-size.png)
-
-14. Rename the X axis to **Time product viewed**
-
-      ![](media/xaxisrename.png)
-
-15. Rename the Y axis to **Time viewed by price and total sale price**
-
-16. Final result
-
-      ![](media/timeviewedonproducts.png)
-
-### Digital Marketing effectiveness
-
-In this scenario we want to see the how digital marketing campaigns effected online sales. So we will take a look at conversion data across different age groups and how much they spent based on how many impressions they received.
-
-1. Select get data from Text/CSV in PowerBI
-
-      ![](media/weblogdata.png)
-
-2. Choose conversion_data and click Open.Then click the Transform Data button
-
-      ![](media/conversiondata.png)
-
-3. Click on the sort arrow for the Purchaseid column and uncheck (0, and all numbers higher than 18).
-
-      ![](media/conversioncleanup.png)
-
-4. Click Close & Apply
-
-      ![](media/closenapply.png)
-
-5. In PowerBI select the Modeling tab then click on Manage Relationships
-
-      ![](media/managerelationships1.png)
-
-6. Click on the New button
-
-      ![](media/newbutton.png)
-
-7. In the first dropdown select the Products Table and highlight the ProductId column
-
-      ![](media/productid.png)
-
-8. In the second dropdown choose conversion_data and choose Purchaseid as the column. Accept the defaults and click the OK button
-
-      ![](media/map-conversiondata.png)
-
-9. Then click the Close button
-
-      ![](media/closebutton.png)
-
-10. Add a Line and stacked column chart
-
-      ![](media/lineandcolumnchart.png)
-
-11. Right click on Price under Products and select New Group
-
-      ![](media/newProductsgroup.png)
-
-12. Change the Group type to List
-
-      ![](media/listgroup.png)
-
-13. Select all values less than $100 and click the Group button
-
-      ![](media/group100.png)
-
-14. Rename that group to Less than $100
-
-      ![](media/lessthan100.png)
-
-15. Select the remaining values and click Group
-
-      ![](media/above100.png)
-
-16. Rename that to Above $100 then click OK
-
-      ![](media/above100ok.png)
-
-17. Set the Shared axis to age. The Column series to the new Price(group) just created and the Column values to Spent. The Line values will get the Impressions column
-
-      ![](media/impressionchart.png)
-
-
-### Location and demographic
-
-1. Select get data from Text/CSV in PowerBI
-
-      ![](media/weblogdata.png)
-
-2. Choose olist_customers_dataset and click Open.Then click Load
-
-      ![](media/olist-customers.png)
-
-3. Choose olist_geolocation_dataset and click Open.Then click Load
-
-      ![](media/olist-geo.png)
-
-4. Choose olist_order_items_dataset and click Open.Then click Load
-
-      ![](media/olist-orderitems.png)
-
-5. Choose olist_orders_dataset and click Open.Then click Load
-
-      ![](media/olist-orders.png)
-
-6. In PowerBI select the Modeling tab then click on Manage Relationships
-
-      ![](media/managerelationships1.png)
-
-7. Click on the New button
-
-      ![](media/newbutton.png)
-
-8. In the first dropdown select olist_order_items_dataset and choose order_item_id column
-
-      ![](media/relate-olist1.png)
-
-9. In the second dropdown select Products and choose the ProductId column
-
-      ![](media/relate-product.png)
-
-10. Leave the defaults and click OK. Then click Close
-
-      ![](media/relate-olist2ok.png)
-
-11. Make sure no visualization is selectd then click the Filled Map visualization
-
-      ![](media/filledmap.png)
-
-12. Select the Data tab on the far left edge
-
-      ![](media/datatab.png)
-
-13. From the available tables select the olist_geolocation_dataset
-
-      ![](media/select-geo1.png)
-
-14. Highlight the geolocation_lat column and change the Data Category to Latitude
-
-      ![](media/latitudefix.png)
-
-15. Highlight the geolocation_long column and change the Data Category to Longitude
-
-      ![](media/longitudefix.png)
-
-16. Click back on the Report tab on the left navigation
-
-      ![](media/report-tab.png)
-
-17. End Result
-
-      ![](media/finalmap.png)
-
-18. Add a slicer by clicking on the Slicer visualization
-
-      ![](media/slicer.png)
-
-19. Use the State field as the Slicer field
-
-      ![](media/slicerfield.png)
-
-20. Final report layout
-
-      ![](media/finalreport.png)
-
-### Publish
-
-1. Navigate to https://app.powerbi.com/
-      ```
-      https://app.powerbi.com/
-      ```
-
-2. Click sign in
-
-      ![](media/signin.png)
-
-3. In the navigation click on Workspaces and click Create a workspace
-
-      ![](media/createworkspace.png)
-
-4. Return to the Power BI Desktop application
-
-5. Click on the Publish button in the Navigation
-
-      ![](media/publishstart.png)
-
-6. Choose your workspace that was just created and click Select
-
-      ![](media/select-workspace.png)
-
-7. Power BI will publish to the workspace
-
-      ![](media/publishing.png)
-
-8. Power BI has completed publishing
-
-      ![](media/publishcomplete.png)
-
-9. Navigate to https://app.powerbi.com/
-      ```
-      https://app.powerbi.com/
-      ```
-
-10. Expand the My workspace section to open your workspace
-
-      ![](media/new-workspace.png)
-
-11. Click on the report name you created to see the results
-
-      ![](media/reportinpowerbi.png)
-
-## Preferred complete solution  
-
-![The Preferred solution](media/sco/SCOPreferred.png 'Current process diagram') 
- 
-_High-level architecture_  
-
-For this solution, you will need to ingest data from multiple sources.  Originally, there are 4 sources of truth across five silos.  Additionally, there will likely be data that needs to be ingested from devices and other channels as Parts Unlimited builds out their new retail solutions.  Using Azure data factory and/or IoT and Event Hubs, bring all the data together into Azure Data lake and Azure Databricks. Then using Synapse analytics, machine learning, and analysis services, generate the final data that will be used in the reports. 
-
+![](media/finalpowerbi.png)    
 
 
 ## Additional references
